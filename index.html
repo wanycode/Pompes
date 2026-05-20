@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PUSH — Counter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --border: #1e1e1e;
+    --text: #e8e8e8;
+    --muted: #444;
+    --accent: #c8ff00;
+    --danger: #ff3b3b;
+    --good: #00ff88;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    overflow: hidden;
+  }
+
+  /* LOADING SCREEN */
+  #loading {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px;
+    z-index: 100;
+    transition: opacity 0.4s ease;
+  }
+  #loading.hidden { opacity: 0; pointer-events: none; }
+
+  .load-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 80px);
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .load-bar-wrap {
+    width: 240px; height: 2px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .load-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .load-status {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* MAIN LAYOUT */
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    height: 100vh;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  #app.visible { opacity: 1; }
+
+  /* VIDEO PANEL */
+  #video-panel {
+    position: relative;
+    overflow: hidden;
+    background: #000;
+  }
+
+  video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+    display: block;
+  }
+
+  canvas#pose-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    transform: scaleX(-1);
+    pointer-events: none;
+  }
+
+  /* Status badge */
+  .status-badge {
+    position: absolute;
+    top: 20px; left: 20px;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(8,8,8,0.75);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    backdrop-filter: blur(8px);
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .status-dot.active { background: var(--good); box-shadow: 0 0 8px var(--good); animation: pulse 1.5s infinite; }
+  .status-dot.detecting { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Phase indicator overlay */
+  .phase-overlay {
+    position: absolute;
+    bottom: 28px; left: 20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.15em;
+    color: rgba(200,255,0,0.0);
+    transition: color 0.2s ease;
+  }
+  .phase-overlay.show { color: rgba(200,255,0,0.7); }
+
+  /* SIDE PANEL */
+  #side-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 32px 28px;
+    gap: 0;
+  }
+
+  .brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* REP COUNTER */
+  .counter-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .counter-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .counter-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(100px, 12vw, 140px);
+    line-height: 0.85;
+    color: var(--text);
+    transition: color 0.1s ease, transform 0.1s ease;
+  }
+  .counter-value.flash {
+    color: var(--accent);
+    transform: scale(1.03);
+  }
+
+  .counter-sub {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-top: 8px;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-item {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  /* FORM INDICATOR */
+  .form-block {
+    margin-bottom: 24px;
+  }
+  .form-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .form-bar-wrap {
+    height: 3px;
+    background: var(--border);
+    margin-bottom: 6px;
+  }
+  .form-bar {
+    height: 100%;
+    background: var(--muted);
+    transition: width 0.3s ease, background 0.3s ease;
+    width: 0%;
+  }
+  .form-bar.good { background: var(--good); }
+  .form-bar.mid { background: var(--accent); }
+  .form-bar.bad { background: var(--danger); }
+  .form-text {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* BUTTONS */
+  .btn-row {
+    display: flex; gap: 10px;
+    margin-top: auto;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+  .btn.primary {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .btn.primary:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  /* Responsiveness mobile */
+  @media (max-width: 700px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+    #side-panel { padding: 20px; gap: 0; }
+    .counter-value { font-size: 72px; }
+    #video-panel { height: 55vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-title">PUSH</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="load-bar"></div></div>
+  <div class="load-status" id="load-status">Chargement du modèle IA…</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="video-panel">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="pose-canvas"></canvas>
+    <div class="status-badge">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Initialisation</span>
+    </div>
+    <div class="phase-overlay" id="phase-overlay">DOWN</div>
+  </div>
+
+  <div id="side-panel">
+    <div class="brand">PUSH</div>
+
+    <div class="counter-block">
+      <div class="counter-label">Répétitions</div>
+      <div class="counter-value" id="rep-count">0</div>
+      <div class="counter-sub" id="phase-text">En attente de détection…</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-label">Session</div>
+        <div class="stat-value" id="stat-total">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Meilleur</div>
+        <div class="stat-value" id="stat-best">0</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Dernière</div>
+        <div class="stat-value" id="stat-last">—</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Série</div>
+        <div class="stat-value" id="stat-set">1</div>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <span class="form-label">Confiance détection</span>
+      <div class="form-bar-wrap"><div class="form-bar" id="form-bar"></div></div>
+      <div class="form-text" id="form-text">—</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="btn-reset">Reset</button>
+      <button class="btn primary" id="btn-set">Nouvelle série</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<script>
+// ── STATE ────────────────────────────────────────────────────────────────────
+let repCount = 0;
+let totalReps = 0;
+let bestSet = parseInt(localStorage.getItem('push_best') || '0');
+let setNumber = 1;
+let phase = 'up'; // 'up' | 'down'
+let lastAngle = null;
+let poseDetected = false;
+
+// EMA smoothing
+let smoothedAngle = null;
+const ALPHA = 0.35;
+
+// Thresholds (elbow angle)
+const DOWN_THRESH = 90;   // coude plié → position basse
+const UP_THRESH   = 155;  // bras tendu → position haute
+
+// ── DOM ──────────────────────────────────────────────────────────────────────
+const videoEl     = document.getElementById('video');
+const canvasEl    = document.getElementById('pose-canvas');
+const ctx         = canvasEl.getContext('2d');
+const repEl       = document.getElementById('rep-count');
+const phaseText   = document.getElementById('phase-text');
+const phaseOverlay= document.getElementById('phase-overlay');
+const statusDot   = document.getElementById('status-dot');
+const statusText  = document.getElementById('status-text');
+const formBar     = document.getElementById('form-bar');
+const formText    = document.getElementById('form-text');
+const statTotal   = document.getElementById('stat-total');
+const statBest    = document.getElementById('stat-best');
+const statLast    = document.getElementById('stat-last');
+const statSet     = document.getElementById('stat-set');
+const loadBar     = document.getElementById('load-bar');
+const loadStatus  = document.getElementById('load-status');
+
+statBest.textContent = bestSet;
+
+// ── ANGLE UTILITY ────────────────────────────────────────────────────────────
+function angle3(a, b, c) {
+  const ab = { x: a.x - b.x, y: a.y - b.y };
+  const cb = { x: c.x - b.x, y: c.y - b.y };
+  const dot = ab.x * cb.x + ab.y * cb.y;
+  const magAB = Math.hypot(ab.x, ab.y);
+  const magCB = Math.hypot(cb.x, cb.y);
+  if (magAB === 0 || magCB === 0) return 180;
+  return Math.acos(Math.max(-1, Math.min(1, dot / (magAB * magCB)))) * (180 / Math.PI);
+}
+
+// ── FLASH ────────────────────────────────────────────────────────────────────
+function flashCounter() {
+  repEl.classList.add('flash');
+  setTimeout(() => repEl.classList.remove('flash'), 200);
+}
+
+// ── UPDATE STATS ─────────────────────────────────────────────────────────────
+function updateStats() {
+  repEl.textContent = repCount;
+  statTotal.textContent = totalReps;
+  if (repCount > bestSet) {
+    bestSet = repCount;
+    localStorage.setItem('push_best', bestSet);
+  }
+  statBest.textContent = bestSet;
+}
+
+// ── POSE CALLBACK ────────────────────────────────────────────────────────────
+function onResults(results) {
+  canvasEl.width  = canvasEl.offsetWidth;
+  canvasEl.height = canvasEl.offsetHeight;
+
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+  if (!results.poseLandmarks) {
+    if (poseDetected) {
+      poseDetected = false;
+      setStatus('inactive', 'Aucune pose détectée');
+    }
+    updateConfidence(0);
+    return;
+  }
+
+  const lm = results.poseLandmarks;
+
+  // Scale landmarks to canvas
+  const scale = (pt) => ({ x: pt.x * canvasEl.width, y: pt.y * canvasEl.height, visibility: pt.visibility });
+
+  // Draw skeleton (custom)
+  drawSkeleton(lm, scale);
+
+  // Use LEFT arm: shoulder=11, elbow=13, wrist=15
+  // Use RIGHT arm: shoulder=12, elbow=14, wrist=16
+  // Pick the more visible arm
+  const lVis = (lm[11].visibility + lm[13].visibility + lm[15].visibility) / 3;
+  const rVis = (lm[12].visibility + lm[14].visibility + lm[16].visibility) / 3;
+
+  const [sIdx, eIdx, wIdx] = lVis > rVis ? [11, 13, 15] : [12, 14, 16];
+  const confidence = Math.max(lVis, rVis);
+
+  updateConfidence(confidence);
+
+  if (confidence < 0.5) {
+    setStatus('inactive', 'Repositionne-toi dans le cadre');
+    return;
+  }
+
+  if (!poseDetected) {
+    poseDetected = true;
+    setStatus('active', 'Pose détectée');
+  }
+
+  const shoulder = lm[sIdx];
+  const elbow    = lm[eIdx];
+  const wrist    = lm[wIdx];
+
+  const raw = angle3(shoulder, elbow, wrist);
+
+  // EMA smoothing
+  smoothedAngle = smoothedAngle === null ? raw : ALPHA * raw + (1 - ALPHA) * smoothedAngle;
+  const ang = smoothedAngle;
+
+  // Draw angle at elbow
+  const elbowPx = scale(elbow);
+  ctx.fillStyle = 'rgba(200,255,0,0.9)';
+  ctx.font = `bold ${Math.round(canvasEl.width * 0.025)}px DM Mono, monospace`;
+  ctx.fillText(`${Math.round(ang)}°`, elbowPx.x + 10, elbowPx.y - 8);
+
+  // REP LOGIC
+  if (phase === 'up' && ang < DOWN_THRESH) {
+    phase = 'down';
+    showPhaseOverlay('DESCENTE');
+    phaseText.textContent = '↓ Phase basse';
+    setStatus('detecting', 'Phase basse');
+  } else if (phase === 'down' && ang > UP_THRESH) {
+    phase = 'up';
+    repCount++;
+    totalReps++;
+    flashCounter();
+    updateStats();
+    showPhaseOverlay('REP ' + repCount);
+    phaseText.textContent = '↑ Phase haute — Rep comptée !';
+    setStatus('detecting', 'Rep comptée !');
+    setTimeout(() => setStatus('active', 'Continue…'), 600);
+  }
+
+  lastAngle = ang;
+}
+
+// ── DRAW SKELETON ────────────────────────────────────────────────────────────
+function drawSkeleton(lm, scale) {
+  const pairs = [
+    [11,13],[13,15],[12,14],[14,16], // bras
+    [11,12],[11,23],[12,24],[23,24], // torse
+    [23,25],[25,27],[24,26],[26,28]  // jambes
+  ];
+
+  ctx.lineWidth = Math.max(1.5, canvasEl.width * 0.002);
+  pairs.forEach(([a, b]) => {
+    const pa = scale(lm[a]), pb = scale(lm[b]);
+    const vis = Math.min(pa.visibility, pb.visibility);
+    if (vis < 0.3) return;
+    ctx.globalAlpha = Math.min(1, vis * 1.2);
+    ctx.strokeStyle = '#c8ff0066';
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
+    ctx.stroke();
+  });
+
+  // Joints
+  [11,12,13,14,15,16,23,24].forEach(i => {
+    const p = scale(lm[i]);
+    if (lm[i].visibility < 0.3) return;
+    ctx.globalAlpha = lm[i].visibility;
+    ctx.fillStyle = '#c8ff00';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(3, canvasEl.width * 0.005), 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.globalAlpha = 1;
+}
+
+// ── UI HELPERS ───────────────────────────────────────────────────────────────
+function setStatus(type, msg) {
+  statusText.textContent = msg;
+  statusDot.className = 'status-dot';
+  if (type === 'active') statusDot.classList.add('active');
+  if (type === 'detecting') statusDot.classList.add('detecting');
+}
+
+function updateConfidence(val) {
+  const pct = Math.round(val * 100);
+  formBar.style.width = pct + '%';
+  if (pct >= 70) { formBar.className = 'form-bar good'; formText.textContent = `Confiance : ${pct}% — Bonne position`; }
+  else if (pct >= 40) { formBar.className = 'form-bar mid'; formText.textContent = `Confiance : ${pct}% — Recadre-toi`; }
+  else { formBar.className = 'form-bar bad'; formText.textContent = `Confiance : ${pct}% — Repositionne-toi`; }
+}
+
+let overlayTimer;
+function showPhaseOverlay(txt) {
+  phaseOverlay.textContent = txt;
+  phaseOverlay.classList.add('show');
+  clearTimeout(overlayTimer);
+  overlayTimer = setTimeout(() => phaseOverlay.classList.remove('show'), 800);
+}
+
+// ── BUTTONS ──────────────────────────────────────────────────────────────────
+document.getElementById('btn-reset').addEventListener('click', () => {
+  repCount = 0;
+  phase = 'up';
+  smoothedAngle = null;
+  repEl.textContent = '0';
+  phaseText.textContent = 'Reset — Prêt';
+  updateStats();
+  statLast.textContent = '—';
+});
+
+document.getElementById('btn-set').addEventListener('click', () => {
+  statLast.textContent = repCount;
+  if (repCount > bestSet) {
+    bestSet = repCount;
+    localStorage.setItem('push_best', bestSet);
+  }
+  statBest.textContent = bestSet;
+  repCount = 0;
+  setNumber++;
+  statSet.textContent = setNumber;
+  phase = 'up';
+  smoothedAngle = null;
+  repEl.textContent = '0';
+  phaseText.textContent = `Série ${setNumber} — Go !`;
+  updateStats();
+});
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+async function init() {
+  setLoadStatus(10, 'Accès caméra…');
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 1280, height: 720 } });
+    videoEl.srcObject = stream;
+    await new Promise(r => videoEl.onloadedmetadata = r);
+  } catch(e) {
+    setLoadStatus(0, 'Erreur caméra : ' + e.message);
+    return;
+  }
+
+  setLoadStatus(30, 'Chargement MediaPipe Pose…');
+
+  const pose = new Pose({
+    locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+  });
+
+  pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    smoothSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+
+  pose.onResults(onResults);
+
+  setLoadStatus(60, 'Initialisation du modèle…');
+
+  const camera = new Camera(videoEl, {
+    onFrame: async () => { await pose.send({ image: videoEl }); },
+    width: 1280, height: 720
+  });
+
+  setLoadStatus(85, 'Démarrage de la caméra…');
+  await camera.start();
+
+  setLoadStatus(100, 'Prêt !');
+  setTimeout(() => {
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+    setStatus('active', 'Caméra active');
+  }, 400);
+}
+
+function setLoadStatus(pct, msg) {
+  loadBar.style.width = pct + '%';
+  loadStatus.textContent = msg;
+}
+
+init();
+</script>
+</body>
+</html>
