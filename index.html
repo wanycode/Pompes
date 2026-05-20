@@ -26,8 +26,13 @@
   --blue:#00c8ff;
 }
 
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;overflow:hidden;}
-
+html,body{
+  min-height:100dvh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Barlow',sans-serif;
+  overflow-x:hidden;
+}
 /* ── NOISE OVERLAY ── */
 body::before{
   content:'';position:fixed;inset:0;
@@ -75,7 +80,7 @@ nav{
 }
 .home-inner{
   display:flex;flex-direction:column;
-  min-height:calc(100vh - 56px);
+  min-height:calc(100dvh - 56px);
   padding:48px 48px 40px;
   gap:40px;
 }
@@ -181,7 +186,7 @@ nav{
 #page-workout.active{display:flex;}
 
 .workout-layout{
-  display:grid;grid-template-columns:1fr 300px;
+  display:grid;grid-template-columns:minmax(0,1fr) 300px;
   flex:1;overflow:hidden;
 }
 
@@ -316,7 +321,7 @@ canvas#pose-canvas{position:absolute;inset:0;width:100%;height:100%;transform:sc
   border-left:1px solid var(--border);
   background:var(--s1);
   display:flex;flex-direction:column;
-  overflow:hidden;
+  overflow-y:auto;
 }
 
 /* Current set header */
@@ -560,7 +565,173 @@ canvas#pose-canvas{position:absolute;inset:0;width:100%;height:100%;transform:sc
   display:inline-block;font-size:8px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;
   padding:2px 8px;background:rgba(232,255,0,0.1);color:var(--acc);
 }
+/* ═════════════════════════════
+   MOBILE RESPONSIVE
+═════════════════════════════ */
+@media (max-width: 900px){
 
+  html,body{
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+
+  /* PAGES */
+  .home-inner,
+  .stats-inner{
+    padding:20px;
+    gap:24px;
+  }
+
+  /* NAV */
+  nav{
+    padding:0 14px;
+  }
+
+  .nav-logo{
+    font-size:18px;
+  }
+
+  .nav-tab{
+    padding:0 10px;
+    font-size:10px;
+  }
+
+  /* HERO */
+  .hero{
+    grid-template-columns:1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .hero-cta{
+    align-items:flex-start;
+  }
+
+  .hero-title{
+    font-size:clamp(48px,16vw,72px);
+  }
+
+  .btn-start{
+    width:100%;
+  }
+
+  /* QUICK STATS */
+  .quick-stats{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .qs-value{
+    font-size:32px;
+  }
+
+  /* WORKOUT LAYOUT */
+  .workout-layout{
+    grid-template-columns:1fr;
+    grid-template-rows:50vh auto;
+    overflow-y:auto;
+  }
+
+  .video-zone{
+    min-height:50vh;
+  }
+
+  .workout-side{
+    border-left:none;
+    border-top:1px solid var(--border);
+    overflow-y:auto;
+  }
+
+  /* COUNTER */
+  .ws-rep-val{
+    font-size:72px;
+  }
+
+  /* CADENCE */
+  .ws-cadence{
+    grid-template-columns:1fr 1fr;
+  }
+
+  /* HISTORY */
+  .session-row{
+    grid-template-columns:1fr;
+    gap:12px;
+    padding:16px;
+  }
+
+  .session-stat{
+    text-align:left;
+  }
+
+  /* STATS */
+  .stats-row{
+    grid-template-columns:1fr;
+  }
+
+  .stats-hero{
+    grid-template-columns:1fr 1fr;
+  }
+
+  /* POST WORKOUT */
+  .post-grid{
+    grid-template-columns:1fr 1fr;
+    width:100%;
+    max-width:320px;
+  }
+
+  .post-cell-val{
+    font-size:28px;
+  }
+
+  /* CHART */
+  .bar-chart{
+    overflow-x:auto;
+    padding-bottom:16px;
+  }
+
+  /* WEEK GRID */
+  .week-cell{
+    font-size:10px;
+  }
+}
+
+
+/* EXTRA SMALL PHONES */
+@media (max-width: 480px){
+
+  .quick-stats{
+    grid-template-columns:1fr;
+  }
+
+  .stats-hero{
+    grid-template-columns:1fr;
+  }
+
+  .hero-title{
+    font-size:42px;
+  }
+
+  .ws-rep-val{
+    font-size:58px;
+  }
+
+  .angle-val{
+    font-size:28px;
+  }
+
+  .timer-badge{
+    font-size:22px;
+  }
+
+  .btn-go{
+    width:90%;
+    padding:18px;
+    font-size:18px;
+  }
+
+  .post-grid{
+    grid-template-columns:1fr;
+  }
+}
 /* scrollbar global */
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
