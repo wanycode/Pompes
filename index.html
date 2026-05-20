@@ -118,7 +118,20 @@ nav{
   background:linear-gradient(135deg,rgba(255,255,255,0.2) 0%,transparent 60%);
 }
 .hero-sub{font-size:11px;color:var(--muted);letter-spacing:0.1em;text-align:right;}
+@media (max-width: 768px){
+  .stats-row{
+    flex-direction: column;
+  }
 
+  .stats-col{
+    width: 100%;
+  }
+}
+video, canvas{
+  width: 100%;
+  height: auto;
+  max-height: 60vh;
+}
 /* Quick stats row */
 .quick-stats{
   display:grid;grid-template-columns:repeat(4,1fr);
@@ -1078,6 +1091,7 @@ let isRunning=false;
 let repCount=0;
 let sessionReps=0;
 let currentSet=1;
+let lastRepTime = 0;
 let sets=[];            // [{reps, duration, repTimes:[]}]
 let setStartTime=null;
 let sessionStartTime=null;
@@ -1243,18 +1257,19 @@ function newWorkout(){
 //  POSE CALLBACK
 // ══════════════════════════════════════════
 function onResults(results){
-  const canvas=document.getElementById('pose-canvas');
-  canvas.width=canvas.offsetWidth;
-  canvas.height=canvas.offsetHeight;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
+  
+const ctx=document.getElementById('pose-canvas').getContext('2d');
+ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
   if(!results.poseLandmarks){
     updateConf(0);
     if(isRunning) setCamStatus('warn','Pose perdue');
     return;
   }
-
+  const canvas = document.getElementById('pose-canvas');
+  const w = canvas.offsetWidth;
+  const h = canvas.offsetHeight;
+canvas.width = w;
+canvas.height = h;
   const lm=results.poseLandmarks;
   const scale=pt=>({x:pt.x*canvas.width,y:pt.y*canvas.height,v:pt.visibility});
 
@@ -1280,26 +1295,37 @@ function onResults(results){
   ctx.fillStyle='rgba(232,255,0,0.85)';
   ctx.font=`bold ${Math.max(12,Math.round(canvas.width*0.022))}px Barlow Condensed,sans-serif`;
   ctx.fillText(Math.round(a)+'°',ep.x+10,ep.y-8);
+  if (!isRunning) return;
 
-  if(!isRunning) return;
-
-  if(phase==='up'&&a<DOWN_THRESH){
-    phase='down';
-    showFlash('↓');
-    document.getElementById('ws-phase').textContent='↓ Phase basse';
-  } else if(phase==='down'&&a>UP_THRESH){
-    phase='up';
-    repCount++;
-    sessionReps++;
-    repTimes.push(Date.now());
-    showFlash('REP '+repCount);
-    document.getElementById('ws-phase').textContent='↑ Répétition comptée';
-    flashCounter();
-    updateUI();
-    updateRPM();
-  }
+if (phase === 'up' && a < DOWN_THRESH) {
+  phase = 'down';
 }
 
+if (phase === 'down' && a > UP_THRESH && Date.now() - lastRepTime > 600) {
+  lastRepTime = Date.now();
+  phase = 'up';
+  registerRep();
+}
+  if(!isRunning) return;
+
+  if(
+  phase==='down' &&
+  a>UP_THRESH &&
+  Date.now()-lastRepTime > 600
+){
+  lastRepTime = Date.now();
+  phase='up';
+  registerRep();
+}
+
+}
+function registerRep(){
+  repCount++;
+  repTimes.push(Date.now());
+  flashCounter();
+  updateUI();
+  updateRPM();
+}
 function drawSkeleton(ctx,lm,scale,canvas){
   const pairs=[[11,13],[13,15],[12,14],[14,16],[11,12],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]];
   ctx.lineWidth=Math.max(1.5,canvas.width*0.002);
