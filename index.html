@@ -36,8 +36,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-tab:hover{color:var(--text);}
 .nav-tab.active{color:var(--acc);border-bottom-color:var(--acc);}
 .nav-actions{display:flex;align-items:center;gap:8px;margin-left:16px;}
-.nav-action-btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid var(--border2);background:transparent;color:var(--muted);height:36px;padding:0 12px;cursor:pointer;border-radius:999px;transition:all 0.15s;}
+.nav-action-btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid var(--border2);background:transparent;color:var(--muted);height:36px;padding:0 12px;cursor:pointer;border-radius:999px;transition:all 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .nav-action-btn:hover{border-color:var(--acc);color:var(--text);background:rgba(232,255,0,0.08);}
+.install-hint{display:none;position:fixed;top:56px;left:0;right:0;z-index:110;padding:10px 14px;background:rgba(6,6,6,0.94);color:var(--text);font-size:11px;text-align:center;letter-spacing:0.08em;backdrop-filter:blur(8px);}
 html[data-theme="light"]{--bg:#f9f9f9;--s1:#ffffff;--s2:#f3f3f3;--s3:#e8e8e8;--border:#d8d8d8;--border2:#c4c4c4;--text:#111;--muted:#556;--muted2:#999;--acc:#0066ff;--acc2:#ff6b00;--red:#d12222;--green:#008f56;--blue:#0077cc;}
 
 /* ══════════ HOME ══════════ */
@@ -50,7 +51,7 @@ html[data-theme="light"]{--bg:#f9f9f9;--s1:#ffffff;--s2:#f3f3f3;--s3:#e8e8e8;--b
 .hero-title .l2{color:var(--acc);display:block;}
 .hero-title .l3{color:var(--muted);font-size:0.45em;font-weight:400;letter-spacing:0.05em;display:block;margin-top:12px;}
 .hero-cta{display:flex;flex-direction:column;align-items:flex-end;gap:12px;}
-.btn-start{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:0.15em;text-transform:uppercase;background:var(--acc);color:#000;border:none;padding:18px 40px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));}
+.btn-start{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:0.15em;text-transform:uppercase;background:var(--acc);color:#000;border:none;padding:18px 40px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.15s;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .btn-start:hover{background:#fff;transform:scale(1.02);}
 .hero-sub{font-size:11px;color:var(--muted);letter-spacing:0.1em;text-align:right;}
 
@@ -99,7 +100,7 @@ html[data-theme="light"]{--bg:#f9f9f9;--s1:#ffffff;--s2:#f3f3f3;--s3:#e8e8e8;--b
 /* ══════════ WORKOUT ══════════ */
 #page-workout{display:none;flex-direction:column;}
 #page-workout.active{display:flex;}
-.workout-layout{display:grid;grid-template-columns:1fr 300px;flex:1;overflow:hidden;height:100%;}
+.workout-layout{display:grid;grid-template-columns:1fr 300px;flex:1;overflow:hidden;height:100%;min-height:calc(100vh - 56px);}
 
 /* Video */
 .video-zone{position:relative;overflow:hidden;background:#000;}
@@ -192,7 +193,7 @@ canvas#pose-canvas{position:absolute;inset:0;width:100%;height:100%;transform:sc
 .mode-badge.show{display:block;}
 
 /* Side panel */
-.workout-side{border-left:1px solid var(--border);background:var(--s1);display:flex;flex-direction:column;overflow:hidden;}
+.workout-side{border-left:1px solid var(--border);background:var(--s1);display:flex;flex-direction:column;overflow:auto;min-height:0;}
 .ws-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .ws-set-label{font-size:9px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);}
 .ws-set-num{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.1em;color:var(--text);}
@@ -247,7 +248,7 @@ canvas#pose-canvas{position:absolute;inset:0;width:100%;height:100%;transform:sc
 .set-mini-bar{width:3px;background:var(--acc2);opacity:0.5;border-radius:1px 1px 0 0;}
 
 .ws-controls{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;}
-.btn-ctrl{flex:1;padding:12px 8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+.btn-ctrl{flex:1;padding:12px 8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .btn-ctrl:hover{border-color:var(--text);color:var(--text);}
 .btn-ctrl.finish{border-color:var(--acc);color:var(--acc);}
 .btn-ctrl.finish:hover{background:var(--acc);color:#000;}
@@ -379,8 +380,9 @@ canvas#pose-canvas{position:absolute;inset:0;width:100%;height:100%;transform:sc
   .hero-cta{align-items:flex-start;}
   .btn-start{width:100%;}
   .quick-stats{grid-template-columns:1fr 1fr;}
-  .workout-layout{grid-template-columns:1fr;grid-template-rows:50vh auto;overflow-y:auto;}
-  .workout-side{border-left:none;border-top:1px solid var(--border);}
+  .workout-layout{grid-template-columns:1fr;grid-template-rows:50vh 1fr;overflow-y:auto;min-height:calc(100vh - 56px);}
+  .workout-side{border-left:none;border-top:1px solid var(--border);min-height:0;}
+  .ws-controls{position:sticky;bottom:0;background:var(--s1);z-index:1;}
   .stats-row{grid-template-columns:1fr;}
   .stats-hero{grid-template-columns:1fr 1fr;}
   .program-grid{grid-template-columns:1fr 1fr;}
@@ -417,6 +419,7 @@ canvas#pose-canvas{position:absolute;inset:0;width:100%;height:100%;transform:sc
     <button id="install-btn" class="nav-action-btn" onclick="launchInstallPrompt()" style="display:none;">INSTALLER</button>
   </div>
 </nav>
+<div id="install-hint" class="install-hint">Pour installer, ouvre le menu du navigateur puis sélectionne Ajouter à l'écran d'accueil.</div>
 
 <!-- ══════════════ HOME ══════════════ -->
 <div id="page-home" class="page active">
@@ -834,15 +837,34 @@ function launchInstallPrompt(){
     if(btn) btn.style.display='none';
   });
 }
+function showInstallHint(text){
+  const hint=document.getElementById('install-hint');
+  if(!hint) return;
+  hint.textContent=text;
+  hint.style.display='flex';
+}
+function hideInstallHint(){
+  const hint=document.getElementById('install-hint');
+  if(!hint) return;
+  hint.style.display='none';
+}
 function setupInstallPrompt(){
   const btn=document.getElementById('install-btn');
   if(!btn) return;
+  let promptFired=false;
   window.addEventListener('beforeinstallprompt', e=>{
     e.preventDefault();
     deferredInstallPrompt = e;
+    promptFired = true;
     btn.style.display='inline-flex';
+    hideInstallHint();
   });
   window.addEventListener('appinstalled', ()=>{ deferredInstallPrompt = null; if(btn) btn.style.display='none'; });
+  setTimeout(()=>{
+    if(!promptFired){
+      showInstallHint('Si l’installation ne s’affiche pas, utilise le menu du navigateur et sélectionne Ajouter à l’écran d’accueil.');
+    }
+  }, 2500);
 }
 function registerServiceWorker(){
   if('serviceWorker' in navigator){
@@ -853,6 +875,8 @@ function initApp(){
   loadPreferences();
   setupInstallPrompt();
   registerServiceWorker();
+  window.addEventListener('click', initVoice, {once:true});
+  window.addEventListener('touchstart', initVoice, {once:true});
   const startPage = location.hash.slice(1);
   if(['home','workout','program','stats'].includes(startPage)) navigate(startPage);
   else navigate('home');
@@ -871,7 +895,8 @@ let programSets=null,programSetIndex=0;
 let restInterval=null,restSeconds=0,restDuration=0;
 let lastCadenceSpeeds=[];
 let fatigueShown=false;
-const ALPHA=0.35,DOWN_THRESH=90,UP_THRESH=155;
+let repMinAngle=180;
+const ALPHA=0.35,DOWN_THRESH=130,UP_THRESH=150;
 
 function selectMode(m,btn){
   currentMode=m;
@@ -953,6 +978,7 @@ function newSet(){
   sets.push({reps:repCount,duration:dur,repTimes:[...repTimes],avgForm});
   sessionReps+=repCount;repCount=0;phase='up';smoothedAngle=null;
   repTimes=[];formScores=[];
+  repMinAngle=180;
   setStartTime=Date.now();currentSet++;fatigueShown=false;
 
   // Start rest timer if program
@@ -1127,19 +1153,20 @@ function onResults(results){
 
   // Form score: based on depth (angle at bottom) — deeper = better
   if(isRunning&&phase==='down'){
+    repMinAngle = Math.min(repMinAngle, a);
     const formPct=Math.round(Math.max(0,Math.min(100,(DOWN_THRESH-a)/DOWN_THRESH*100+50)));
     updateFormScore(formPct);
   }
 
   if(!isRunning)return;
 
-  if(phase==='up'&&a<DOWN_THRESH){phase='down';}
+  if(phase==='up'&&a<DOWN_THRESH){phase='down';repMinAngle=a;}
   if(phase==='down'&&a>UP_THRESH&&Date.now()-lastRepTime>500){
     lastRepTime=Date.now();
     phase='up';
-    const minAngle=a; // approx
-    const quality=minAngle<70?'good':minAngle<85?'half':'bad';
+    const quality=repMinAngle<95?'good':repMinAngle<115?'half':'bad';
     registerRep(quality);
+    repMinAngle=180;
   }
 }
 
