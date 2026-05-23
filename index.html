@@ -38,7 +38,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .nav-actions{display:flex;align-items:center;gap:8px;margin-left:16px;}
 .nav-action-btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;border:1px solid var(--border2);background:transparent;color:var(--muted);height:36px;padding:0 12px;cursor:pointer;border-radius:999px;transition:all 0.15s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .nav-action-btn:hover{border-color:var(--acc);color:var(--text);background:rgba(232,255,0,0.08);}
-.install-hint{display:none;position:fixed;top:56px;left:0;right:0;z-index:110;padding:10px 14px;background:rgba(6,6,6,0.94);color:var(--text);font-size:11px;text-align:center;letter-spacing:0.08em;backdrop-filter:blur(8px);}
 html[data-theme="light"]{--bg:#f9f9f9;--s1:#ffffff;--s2:#f3f3f3;--s3:#e8e8e8;--border:#d8d8d8;--border2:#c4c4c4;--text:#111;--muted:#556;--muted2:#999;--acc:#0066ff;--acc2:#ff6b00;--red:#d12222;--green:#008f56;--blue:#0077cc;}
 
 /* ══════════ HOME ══════════ */
@@ -419,8 +418,6 @@ canvas#pose-canvas{position:absolute;inset:0;width:100%;height:100%;transform:sc
     <button id="install-btn" class="nav-action-btn" onclick="launchInstallPrompt()" style="display:none;">INSTALLER</button>
   </div>
 </nav>
-<div id="install-hint" class="install-hint">Pour installer, ouvre le menu du navigateur puis sélectionne Ajouter à l'écran d'accueil.</div>
-
 <!-- ══════════════ HOME ══════════════ -->
 <div id="page-home" class="page active">
 <div class="home-inner">
@@ -837,34 +834,15 @@ function launchInstallPrompt(){
     if(btn) btn.style.display='none';
   });
 }
-function showInstallHint(text){
-  const hint=document.getElementById('install-hint');
-  if(!hint) return;
-  hint.textContent=text;
-  hint.style.display='flex';
-}
-function hideInstallHint(){
-  const hint=document.getElementById('install-hint');
-  if(!hint) return;
-  hint.style.display='none';
-}
 function setupInstallPrompt(){
   const btn=document.getElementById('install-btn');
   if(!btn) return;
-  let promptFired=false;
   window.addEventListener('beforeinstallprompt', e=>{
     e.preventDefault();
     deferredInstallPrompt = e;
-    promptFired = true;
     btn.style.display='inline-flex';
-    hideInstallHint();
   });
   window.addEventListener('appinstalled', ()=>{ deferredInstallPrompt = null; if(btn) btn.style.display='none'; });
-  setTimeout(()=>{
-    if(!promptFired){
-      showInstallHint('Si l’installation ne s’affiche pas, utilise le menu du navigateur et sélectionne Ajouter à l’écran d’accueil.');
-    }
-  }, 2500);
 }
 function registerServiceWorker(){
   if('serviceWorker' in navigator){
