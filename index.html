@@ -950,7 +950,15 @@ function startWorkout(){
 }
 
 function newSet(){
-  if(!isRunning)return;
+  if(!isRunning){
+    const pre=document.getElementById('pre-overlay');
+    const rest=document.getElementById('rest-overlay');
+    if(pre && !pre.classList.contains('hidden')){ startCountdown(); return; }
+    if(rest && rest.classList.contains('show')){ skipRest(); return; }
+    // If not running and no overlays, start workout
+    startWorkout();
+    return;
+  }
   const dur=Math.round((Date.now()-setStartTime)/1000);
   const avgForm=formScores.length?Math.round(formScores.reduce((a,b)=>a+b,0)/formScores.length):0;
   sets.push({reps:repCount,duration:dur,repTimes:[...repTimes],avgForm});
@@ -1322,9 +1330,14 @@ function showProgramDetail(p){
 function launchProgram(id){
   selectedProgram=PROGRAMS.find(p=>p.id===id);
   navigate('workout');
-  // Set mode to match program
-  currentMode=id==='pyramid'?'pyramid':id==='tabata'||id==='classic'?'max':'free';
-  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active-mode'));
+  // Set mode to guided program mode (pyramid keeps its mode)
+  currentMode = id==='pyramid' ? 'pyramid' : 'program';
+  document.querySelectorAll('.mode-btn').forEach((b,i)=>b.classList.toggle('active-mode', false));
+  // If user landed on workout, prepare program but don't auto-start countdown — allow +SÉRIE or START to begin
+  // Ensure UI reflects selected program
+  if(selectedProgram){
+    programSets = [...selectedProgram.sets]; programSetIndex = 0; updateProgramProgress();
+  }
 }
 
 // ══════════════════════════════════════
